@@ -1,0 +1,26 @@
+# Dependencies
+markdown:         redcarpet
+pygments:         true
+
+# Permalinks
+permalink:        pretty
+
+# Setup
+title:            Frank's Dev Blog
+tagline:          ''
+description:      'Thoughts and lessons learned trying to write better software.'
+url:              http://fshowalter.github.io/devblog
+
+author:
+  name:           'Frank Showalter'
+  url:            https://twitter.com/fshowalter
+
+paginate:         5
+
+# Custom vars
+version:          1.0.0
+
+github:
+  repo:           https://github.com/fshowalter/
+
+exclude: ['Gemfile', 'Gemfile.lock', 'vendor', '.bundle']
