@@ -1,3 +1,5 @@
+baseurl: http://fshowalter.github.io/devblog
+
 # Dependencies
 markdown:         redcarpet
 pygments:         true
