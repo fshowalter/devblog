@@ -157,7 +157,10 @@ module ActiveRecord
   module Associations
     class CollectionAssociation < Association
       def ids_writer_with_changed_attributes(ids)
-        old_ids = load_target.map(&:id)
+        old_ids = load_target.map do |t| 
+          t.send(reflection.primary_key_column.name)
+        end
+        
         if ids_will_change(old_ids, ids)
           name = reflection.name.to_s.singularize
           owner.changed_attributes.merge!("#{name}_ids" => old_ids)
