@@ -71,6 +71,8 @@ end
 #
 #  performer_id          :integer      not null
 #  movie_id              :integer      not null
+class MoviePerformer < ActiveRecord::Base
+end
 ```
 
 And create a relation:
