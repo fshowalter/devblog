@@ -159,7 +159,8 @@ module ActiveRecord
       def ids_writer_with_changed_attributes(ids)
         old_ids = load_target.map(&:id)
         if ids_will_change(old_ids, ids)
-          owner.changed_attributes.merge!(name => old_ids)
+          name = reflection.name.to_s.singularize
+          owner.changed_attributes.merge!("#{name}_ids" => old_ids)
         end
 
         ids_writer_without_changed_attributes(ids)
@@ -170,7 +171,14 @@ module ActiveRecord
       private
 
       def ids_will_change(old_ids, new_ids)
-        Set.new(old_ids.map(&:to_i) != Set.new(new_ids.map(&:to_i)
+        (normalize_ids(old_ids) & normalize_ids(new_ids)).any?
+      end
+
+      def normalize_ids(ids)
+         pk_column = reflection.primary_key_column
+         ids = Array(ids).reject { |id| id.blank? }
+         ids.map! { |i| pk_column.type_cast(i) }
+         ids
       end
     end
   end
