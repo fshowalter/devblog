@@ -136,7 +136,8 @@ module ActiveRecord
         pk_column = reflection.primary_key_column
         ids = Array(ids).reject { |id| id.blank? }
         ids.map! { |i| pk_column.type_cast(i) }
-        replace(klass.find(ids).index_by { |r| r.id }.values_at(*ids))
+        replace(klass.find(ids)
+          .index_by { |r| r.id }.values_at(*ids))
       end
   end
 end
@@ -150,7 +151,7 @@ Unfortunately, there's no easy fix. Instead, we have to chose the lesser of seve
 
 3. We could open up `CollectionAssociation` and fix `ids_writer`.
 
-I always consider opening classes a last resort, but given that our fix here is a one-line, targeted fix, I'd be okay with it. If it makes you uncomfortable, you could try fix #2, but that's a lot of extra code for the same result.
+I always consider opening classes a last resort, but given that our fix is targeted and simple, I'd be okay with it. If it makes you uncomfortable, you could try fix #2, but that's a lot of extra code for the same result.
 
 ```ruby
 module ActiveRecord
@@ -272,9 +273,15 @@ Say what? I mean, forget the premier attributes, what happened to `title`? That'
 1. The `previous_changes` hash is replaced by the `changed_attributes` hash.
 2. The `changed_attributes` hash is cleared.
 
-So what's happening here? Well, save is getting called twice. When we call `movie.save`, Rails first calls save on the premier child-object so it can have an id to put in the movie's `premier_id` column. Due to Premier's `has_one :movie` association, the premier child-object calls save on it's associated movie, which in turn replaces the movie's `previous_changes` hash with the movie's `changed_attributes` hash and then clears the movie's `changed_attributes` hash.
+So what's happening here? Well, save is getting called twice. When we call `movie.save`, Rails first calls save on the premier child-object so it can have an id to put in the movie's `premier_id` column. Due to Premier's `has_one :movie` association, the premier child-object calls save on it's associated movie, which in turn replaces the movie's `previous_changes` hash with the movie's `changed_attributes` hash and then clears the movie's `changed_attributes` hash. Confused? Me too. Let's break it down.
 
-At this point, Rails has a saved Premier object with an id. The movie's `changed_attributes` hash is empty and it's `previous_changes` hash is `{ "title" => nil }`.
+1. We call `movie.save`
+2. Inside the `movie.save` method, Rails calls `save` on `movie.premier`.
+3. Inside the `movie.premier.save` method, Rails calls `save` on `premier.movie`, which is the movie we called save on in step 1.
+4. Inside `movie.premier.movie.save` Rails copies the `changed_attributes` of `movie.premier.movie` to `previous_changes`. This consists of {"title" => nil}.
+5. Rails clears the `changed_attributes` of `movie.premier.movie`.
+
+At this point, Rails has a saved Premier object with an id. The movie's `changed_attributes` hash is empty (cleared in step 5) and it's `previous_changes` hash is `{ "title" => nil }` (copied in step 4).
 
 Now that the child object is saved, Rails finishes saving our object, which _once again_ replaces the `previous_changes` hash, except now our `changed_attributes` hash is empty, thus making the `previous_changes` hash empty.
 
