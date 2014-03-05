@@ -158,11 +158,15 @@ module ActiveRecord
   module Associations
     class CollectionAssociation < Association
       def ids_writer_with_changed_attributes(ids)
+        ids = normalize_ids(ids)
+        
         old_ids = load_target.map do |t| 
           t.send(reflection.primary_key_column.name)
         end
         
-        if ids_will_change(old_ids, ids)
+        old_ids = normalize_ids(old_ids)
+        
+        if ids_will_change?(old_ids, ids)
           name = reflection.name.to_s.singularize
           owner.changed_attributes.merge!("#{name}_ids" => old_ids)
         end
@@ -174,8 +178,8 @@ module ActiveRecord
 
       private
 
-      def ids_will_change(old_ids, new_ids)
-        (normalize_ids(old_ids) & normalize_ids(new_ids)).any?
+      def ids_will_change?(old_ids, new_ids)
+        Set.new(old_ids) != Set.new(new_ids)
       end
 
       def normalize_ids(ids)
@@ -413,4 +417,4 @@ movie.previous_changes
 # "venue" =>"Grauman's Chinese Theatre", "date" => '1959-03-18' }}
 ```
 
-Now we've got an atomic way to update an aggregate object and get the original values for any changes attributes, even associations and child objects. Since we're opening classes, we're vulnerable breaking changes with each version of Rails, but a few simple unit tests should prevent unwanted surprises.
+Now we've got an atomic way to update an aggregate object and get the original values for any changes attributes, even associations and child objects. Since we're opening classes, we're vulnerable breaking changes with each version of Rails, but a few simple unit tests should prevent unwanted surprises. I've also gone ahead an submitted a pull request to add the `changed_attributes` functionality to the `ids_writer` method [here](https://github.com/rails/rails/pull/14282).
