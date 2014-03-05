@@ -23,6 +23,6 @@ paginate:         5
 version:          1.0.0
 
 github:
-  repo:           https://github.com/fshowalter/devblog/tree/gh-pages/_posts
+  repo:           https://github.com/fshowalter/devblog/tree/gh-pages
 
 exclude: ['Gemfile', 'Gemfile.lock', 'vendor', '.bundle']
