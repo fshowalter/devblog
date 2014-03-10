@@ -19,7 +19,7 @@ That said, there are tools to make documentation less of a chore. Right now, one
 
 One of YARD's strengths is its ability to automatically exclude private (and optionally protected) methods, thus easing the documentation burden by reducing it to public entry points.
 
-Except currently YARD doesn't recognize Ruby's [`private_class_method`](http://ruby-doc.org/core-2.1.0/Module.html#method-i-private_class_method), which means that all class methods are always included. This really becomes a problem when you're building stateless service objects. To work around it, you can add an `@private` comment to the top of all your intended-private methods, but now we're duplicating not only the business logic in documentation, but also the method visibility. We can do better.
+Except currently YARD doesn't recognize Ruby's [`private_class_method`](http://ruby-doc.org/core-2.1.0/Module.html#method-i-private_class_method), which means that all class methods defined by `def self.class_method_name` are always included. 
 
 On a related note, I see this a lot:
 
@@ -55,9 +55,9 @@ class SomethingService
 end
 ```
 
-The Rails convention is to use `class << self` but I prefer `self.my_class_method` as it's more explicit.
+The Rails convention is to use `class << self` (which incidentally works with YARD too)  but I prefer `self.my_class_method` as it's more explicit, so let's enhance YARD. Granted, we could add an `@private` comment to the top of all our intended-private methods, but now we're duplicating not only the business logic in documentation, but also the method visibility. We can do better.
 
-Anyway, back to YARD. It currently has support for the `private_constant` method, which should provide a good starting point for our implementation. That code currently looks like this:
+YARD currently has support for the `private_constant` method, which should provide a good starting point for our implementation. That code currently looks like this:
 
 ```ruby
   # Sets visibility of a constant (class, module, const)
